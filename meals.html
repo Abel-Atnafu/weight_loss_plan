@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="food_database.js"></script>
 </head>
 <body>
     <div class="bg-noise"></div>
@@ -47,18 +48,29 @@
                     <h1 style="font-size: 3rem; font-weight: 700; line-height: 1.1;">Nutrition <span class="text-gradient">Core</span>.</h1>
                     <p style="color: var(--text-muted); font-size: 1.1rem; margin-top: 0.5rem;">Fuel your empire.</p>
                 </div>
-                <button class="btn-premium">
+                <button class="btn-premium" onclick="document.getElementById('foodSearchInput').focus()">
                     <i data-lucide="plus"></i> Add Meal
                 </button>
             </header>
 
-            <div class="bento-grid reveal stagger-1">
+            <!-- Food Search Section -->
+            <div class="interactive-card reveal stagger-1" style="margin-bottom: 2rem; position: relative; z-index: 10;">
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <i data-lucide="search" style="color: var(--text-muted);"></i>
+                    <input type="text" id="foodSearchInput" class="input-glass" placeholder="Search for ANY International or Ethiopian food (e.g., Injera, Pizza, Doro Wat)..." style="border: none; background: transparent; padding: 0.5rem; font-size: 1.1rem; flex: 1;">
+                </div>
+                <div id="searchResults" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; background: rgba(10, 14, 23, 0.95); backdrop-filter: blur(20px); border: 1px solid var(--card-border); border-radius: 16px; margin-top: 0.5rem; max-height: 300px; overflow-y: auto; padding: 1rem; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+                    <!-- Results injected here -->
+                </div>
+            </div>
+
+            <div class="bento-grid reveal stagger-2">
                 <!-- Macro Ring -->
                 <div class="interactive-card bento-col-2" style="display: flex; align-items: center; justify-content: space-around;">
                     <div style="position: relative; width: 160px; height: 160px;">
                         <svg viewBox="0 0 36 36" style="width: 100%; height: 100%;">
                             <path stroke-dasharray="100, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="3"></path>
-                            <path stroke-dasharray="65, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="url(#grad2)" stroke-width="3" stroke-linecap="round" style="animation: fillRing 1.5s ease-out forwards;"></path>
+                            <path id="calorieRing" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="url(#grad2)" stroke-width="3" stroke-linecap="round" style="transition: stroke-dasharray 1s cubic-bezier(0.34, 1.56, 0.64, 1);"></path>
                             <defs><linearGradient id="grad2"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#f43f5e"/></linearGradient></defs>
                         </svg>
                         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
@@ -69,19 +81,19 @@
                         <div>
                             <p style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;">Protein</p>
                             <div style="width: 150px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-top: 4px; overflow: hidden;">
-                                <div style="width: 80%; height: 100%; background: #6366f1; border-radius: 10px;"></div>
+                                <div id="proteinBar" style="width: 0%; height: 100%; background: #6366f1; border-radius: 10px; transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);"></div>
                             </div>
                         </div>
                         <div>
                             <p style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;">Carbs</p>
                             <div style="width: 150px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-top: 4px; overflow: hidden;">
-                                <div style="width: 45%; height: 100%; background: #a855f7; border-radius: 10px;"></div>
+                                <div id="carbsBar" style="width: 0%; height: 100%; background: #a855f7; border-radius: 10px; transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);"></div>
                             </div>
                         </div>
                         <div>
                             <p style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase;">Fats</p>
                             <div style="width: 150px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-top: 4px; overflow: hidden;">
-                                <div style="width: 60%; height: 100%; background: #ec4899; border-radius: 10px;"></div>
+                                <div id="fatsBar" style="width: 0%; height: 100%; background: #ec4899; border-radius: 10px; transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);"></div>
                             </div>
                         </div>
                     </div>
@@ -105,15 +117,107 @@
     <script src="app.js"></script>
     <script>
         lucide.createIcons();
-        setTimeout(() => {
+        
+        let currentCalories = 0;
+        let currentProtein = 0;
+        let currentCarbs = 0;
+        let currentFats = 0;
+
+        const maxCalories = 2400;
+        const maxProtein = 150;
+        const maxCarbs = 250;
+        const maxFats = 80;
+
+        function updateMacrosUI() {
             const calEl = document.getElementById('calCount');
+            const pBar = document.getElementById('proteinBar');
+            const cBar = document.getElementById('carbsBar');
+            const fBar = document.getElementById('fatsBar');
+            const svgPath = document.getElementById('calorieRing');
+
             if(window.FitTrackUI && calEl) {
-                window.FitTrackUI.animateValue(calEl, 0, 1560, 1500); 
+                // Animate to new value
+                const startVal = parseInt(calEl.innerText) || 0;
+                window.FitTrackUI.animateValue(calEl, startVal, currentCalories, 800); 
+            } else {
+                calEl.innerText = currentCalories;
             }
-        }, 100);
+
+            pBar.style.width = Math.min((currentProtein / maxProtein) * 100, 100) + '%';
+            cBar.style.width = Math.min((currentCarbs / maxCarbs) * 100, 100) + '%';
+            fBar.style.width = Math.min((currentFats / maxFats) * 100, 100) + '%';
+
+            const percentage = Math.min((currentCalories / maxCalories) * 100, 100);
+            svgPath.style.strokeDasharray = `${percentage}, 100`;
+        }
+
+        // Search Logic
+        const searchInput = document.getElementById('foodSearchInput');
+        const searchResults = document.getElementById('searchResults');
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            if(query.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            const results = window.FoodDB.filter(f => f.name.toLowerCase().includes(query) || f.category.toLowerCase().includes(query));
+            
+            if(results.length > 0) {
+                searchResults.style.display = 'block';
+                searchResults.innerHTML = results.map(f => `
+                    <div class="food-result" onclick="addFood(${f.calories}, ${f.protein}, ${f.carbs}, ${f.fats}, '${f.name}')" style="padding: 1rem; border-bottom: 1px solid var(--card-border); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <p style="font-weight: 600; color: white;">${f.name}</p>
+                            <p style="font-size: 0.8rem; color: var(--text-muted);">${f.category} • P:${f.protein}g | C:${f.carbs}g | F:${f.fats}g</p>
+                        </div>
+                        <div style="background: var(--gradient-1); padding: 0.25rem 0.75rem; border-radius: 100px; font-weight: 700; font-size: 0.9rem;">
+                            + ${f.calories}
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                searchResults.style.display = 'block';
+                searchResults.innerHTML = `<p style="color: var(--text-muted); text-align: center; padding: 1rem;">No foods found.</p>`;
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if(!searchResults.contains(e.target) && e.target !== searchInput) {
+                searchResults.style.display = 'none';
+            }
+        });
+
+        window.addFood = function(cal, p, c, f, name) {
+            currentCalories += cal;
+            currentProtein += p;
+            currentCarbs += c;
+            currentFats += f;
+            
+            updateMacrosUI();
+            
+            searchResults.style.display = 'none';
+            searchInput.value = '';
+            
+            // Show a quick toast/alert (simulated)
+            const toast = document.createElement('div');
+            toast.style.position = 'fixed'; toast.style.bottom = '2rem'; toast.style.right = '2rem';
+            toast.style.background = 'var(--success)'; toast.style.color = 'white'; toast.style.padding = '1rem 2rem';
+            toast.style.borderRadius = '16px'; toast.style.fontWeight = '600'; toast.style.zIndex = '9999';
+            toast.innerText = `Added ${name} (+${cal} kcal)`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        };
+
+        // Initialize empty state
+        updateMacrosUI();
+
     </script>
     <style>
-        @keyframes fillRing { 0% { stroke-dasharray: 0, 100; } 100% { stroke-dasharray: 65, 100; } }
+        .food-result:hover { background: rgba(255,255,255,0.05); }
+        .food-result:last-child { border-bottom: none !important; }
+        @keyframes fillRing { 0% { stroke-dasharray: 0, 100; } }
     </style>
 </body>
 </html>

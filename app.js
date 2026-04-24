@@ -1,13 +1,9 @@
 // FitTrack - Real Database Integration (Supabase)
-// You will need to replace these with your own Supabase URL and Key
-const SUPABASE_URL = 'https://your-project.supabase.co';
-const SUPABASE_KEY = 'your-anon-key';
+const SUPABASE_URL = 'https://zpehyrfnyahbfmqykdxu.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwZWh5cmZueWFoYmZtcXlrZHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMjIwODIsImV4cCI6MjA5MjU5ODA4Mn0.7rI93Nepb0fMTfxl0UDQHEzamK8WfnPcIPcyeHN9QRg';
 
-// Initialize Supabase Client (if keys are provided)
-let supabase = null;
-if (SUPABASE_URL !== 'https://your-project.supabase.co') {
-    supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-}
+// Initialize Supabase Client
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const FitTrack = {
     // Streak Logic
@@ -45,19 +41,39 @@ const FitTrack = {
         return streak;
     },
 
-    // Mock functions for now (will be replaced by Supabase calls)
     async getLogs() {
-        // This will eventually be: const { data } = await supabase.from('logs').select('*').order('date', { ascending: false });
-        const saved = localStorage.getItem('fittrack_logs');
-        return saved ? JSON.parse(saved) : [];
+        try {
+            const { data, error } = await supabase
+                .from('weight_logs')
+                .select('*')
+                .order('date', { ascending: false });
+                
+            if (error) throw error;
+            return data || [];
+        } catch (e) {
+            console.error("Error fetching logs from Supabase, falling back to local:", e);
+            const saved = localStorage.getItem('fittrack_logs');
+            return saved ? JSON.parse(saved) : [];
+        }
     },
 
     async saveLog(weight, date, note) {
-        const logs = await this.getLogs();
-        const newLog = { id: Date.now(), weight: parseFloat(weight), date, note };
-        logs.unshift(newLog);
-        localStorage.setItem('fittrack_logs', JSON.stringify(logs));
-        return newLog;
+        try {
+            const { data, error } = await supabase
+                .from('weight_logs')
+                .insert([{ weight: parseFloat(weight), date, note }])
+                .select();
+                
+            if (error) throw error;
+            return data[0];
+        } catch (e) {
+            console.error("Error saving log to Supabase, falling back to local:", e);
+            const logs = await this.getLogs();
+            const newLog = { id: Date.now(), weight: parseFloat(weight), date, note };
+            logs.unshift(newLog);
+            localStorage.setItem('fittrack_logs', JSON.stringify(logs));
+            return newLog;
+        }
     }
 };
 
