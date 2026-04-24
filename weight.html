@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weight Tracking | FitTrack Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="bg-noise"></div>
+    <div class="ambient-light" style="width: 400px; height: 400px; background: rgba(99, 102, 241, 0.15); top: -200px; left: -200px;"></div>
+
+    <div class="app-container">
+        <!-- Premium Sidebar -->
+        <aside class="sidebar">
+            <h2 class="text-gradient" style="font-size: 2rem; margin-bottom: 3rem; font-weight: 800; letter-spacing: -1px;">FitTrack<span style="color:var(--text-main)">.</span></h2>
+            
+            <nav style="flex: 1; display: flex; flex-direction: column; gap: 0.25rem;">
+                <a href="dashboard.html" class="nav-item stagger-1 reveal">
+                    <i data-lucide="layout-dashboard"></i> Dashboard
+                </a>
+                <a href="weight.html" class="nav-item active stagger-2 reveal">
+                    <i data-lucide="activity"></i> Weight Journey
+                </a>
+                <a href="meals.html" class="nav-item stagger-3 reveal">
+                    <i data-lucide="utensils-crossed"></i> Food & Macros
+                </a>
+            </nav>
+
+            <div class="interactive-card" style="padding: 1rem; border-radius: 20px;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <img src="https://ui-avatars.com/api/?name=Abel&background=6366f1&color=fff" style="width: 44px; height: 44px; border-radius: 12px;" alt="Avatar">
+                    <div>
+                        <p style="font-size: 0.95rem; font-weight: 600;">Abel</p>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Pro Member</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header style="margin-bottom: 3rem; display: flex; justify-content: space-between; align-items: flex-end;" class="reveal">
+                <div>
+                    <h1 style="font-size: 3rem; font-weight: 700; line-height: 1.1;">Data <span class="text-gradient">Entry</span>.</h1>
+                    <p style="color: var(--text-muted); font-size: 1.1rem; margin-top: 0.5rem;">The numbers never lie.</p>
+                </div>
+            </header>
+
+            <div class="bento-grid reveal stagger-1">
+                <!-- Entry Form -->
+                <div class="premium-glow-card bento-col-2" style="height: fit-content;">
+                    <h3 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Log Progress</h3>
+                    <form id="weightForm">
+                        <div style="margin-bottom: 1.25rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Mass (kg)</label>
+                            <input type="number" step="0.1" id="weightInput" class="input-glass" placeholder="e.g. 82.5" required>
+                        </div>
+                        <div style="margin-bottom: 1.25rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Date</label>
+                            <input type="date" id="dateInput" class="input-glass" required>
+                        </div>
+                        <div style="margin-bottom: 2rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Condition / Note</label>
+                            <input type="text" id="noteInput" class="input-glass" placeholder="How are you feeling?">
+                        </div>
+                        <button type="submit" class="btn-premium" style="width: 100%; justify-content: center; font-size: 1.1rem; padding: 1.25rem;">
+                            Commit Record <i data-lucide="check-circle"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- History Table -->
+                <div class="interactive-card bento-col-2">
+                    <h3 style="margin-bottom: 2rem; font-size: 1.5rem;">Ledger</h3>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--card-border);">
+                                    <th style="padding: 1rem; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Date</th>
+                                    <th style="padding: 1rem; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Weight</th>
+                                    <th style="padding: 1rem; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Delta</th>
+                                </tr>
+                            </thead>
+                            <tbody id="weightHistoryBody">
+                                <!-- Data injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        lucide.createIcons();
+        document.getElementById('dateInput').valueAsDate = new Date();
+
+        const tbody = document.getElementById('weightHistoryBody');
+        
+        async function renderHistory() {
+            const logs = await FitTrack.getLogs();
+            const displayLogs = logs.length > 0 ? logs : [
+                { date: '2024-04-24', weight: 82.5 },
+                { date: '2024-04-23', weight: 82.7 },
+                { date: '2024-04-22', weight: 83.2 }
+            ];
+
+            tbody.innerHTML = '';
+            displayLogs.forEach((item, index) => {
+                const nextWeight = displayLogs[index + 1] ? displayLogs[index + 1].weight : item.weight;
+                const change = (item.weight - nextWeight).toFixed(1);
+                
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid var(--card-border)';
+                tr.style.transition = 'background 0.3s';
+                tr.addEventListener('mouseover', () => tr.style.background = 'rgba(255,255,255,0.02)');
+                tr.addEventListener('mouseout', () => tr.style.background = 'transparent');
+
+                tr.innerHTML = `
+                    <td style="padding: 1.5rem 1rem;">${item.date}</td>
+                    <td style="padding: 1.5rem 1rem; font-weight: 700; font-size: 1.25rem;">${item.weight} <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 400;">kg</span></td>
+                    <td style="padding: 1.5rem 1rem;">
+                        <span style="padding: 0.4rem 0.8rem; border-radius: 100px; font-size: 0.85rem; font-weight: 700; background: ${change <= 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(236, 72, 153, 0.1)'}; color: ${change <= 0 ? 'var(--success)' : 'var(--accent)'}; box-shadow: 0 0 10px ${change <= 0 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(236, 72, 153, 0.2)'};">
+                            ${change > 0 ? '+' : ''}${change} kg
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        renderHistory();
+
+        document.getElementById('weightForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader" class="spin"></i> Processing...';
+            lucide.createIcons();
+
+            const weight = document.getElementById('weightInput').value;
+            const date = document.getElementById('dateInput').value;
+            const note = document.getElementById('noteInput').value;
+            
+            setTimeout(async () => {
+                await FitTrack.saveLog(weight, date, note);
+                renderHistory();
+                e.target.reset();
+                document.getElementById('dateInput').valueAsDate = new Date();
+                btn.innerHTML = originalText;
+                lucide.createIcons();
+            }, 600);
+        });
+    </script>
+    <style>
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</body>
+</html>

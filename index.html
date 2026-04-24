@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitTrack Pro | The Evolution of Health</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body style="overflow: hidden;">
+    <div class="bg-noise"></div>
+    <div class="ambient-light" style="width: 500px; height: 500px; background: rgba(99, 102, 241, 0.2); top: -250px; left: -250px;"></div>
+    <div class="ambient-light" style="width: 600px; height: 600px; background: rgba(236, 72, 153, 0.15); bottom: -300px; right: -300px;"></div>
+
+    <nav style="display: flex; justify-content: space-between; align-items: center; padding: 2rem 5%; position: absolute; width: 100%; top: 0; z-index: 50;">
+        <h2 class="text-gradient" style="font-size: 2.5rem; font-weight: 800; letter-spacing: -1px;">FitTrack<span style="color:var(--text-main)">.</span></h2>
+        <button class="btn-premium reveal" id="loginBtn" style="padding: 0.75rem 2.5rem; font-size: 1rem;">Enter Platform</button>
+    </nav>
+
+    <main style="display: flex; height: 100vh; align-items: center; justify-content: center; padding: 5%; position: relative;">
+        <!-- 3D Hero Element -->
+        <div id="hero3D" style="text-align: center; max-width: 1000px; transform-style: preserve-3d; perspective: 1000px;">
+            <div style="transform: translateZ(60px);" class="reveal stagger-1">
+                <span style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 100px; font-size: 0.85rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); display: inline-block; margin-bottom: 2rem;">
+                    <span style="color: var(--success); margin-right: 8px;">●</span> FitTrack Pro 2.0 Live
+                </span>
+            </div>
+            
+            <h1 class="reveal stagger-2" style="font-size: clamp(4rem, 10vw, 8rem); line-height: 0.9; font-weight: 800; letter-spacing: -3px; margin-bottom: 1.5rem; transform: translateZ(100px);">
+                Outwork your <br>
+                <span class="text-gradient" style="filter: drop-shadow(0 0 30px rgba(168, 85, 247, 0.4));">Excuses.</span>
+            </h1>
+            
+            <p class="reveal stagger-3" style="color: var(--text-muted); font-size: 1.5rem; font-weight: 300; max-width: 600px; margin: 0 auto 3rem; transform: translateZ(40px);">
+                A gamified, multi-user ecosystem designed for the relentless. Start your streak today.
+            </p>
+        </div>
+
+        <!-- Auth Modal -->
+        <div id="authOverlay" style="position: fixed; inset: 0; background: rgba(1, 3, 10, 0.8); backdrop-filter: blur(20px); display: none; justify-content: center; align-items: center; z-index: 1000; opacity: 0; transition: opacity 0.4s;">
+            <div class="interactive-card" id="authCard" style="width: 100%; max-width: 480px; padding: 3rem; transform: translateY(40px) scale(0.95); transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);">
+                <button id="closeAuth" style="position: absolute; top: 1.5rem; right: 1.5rem; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); color: white; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="x" style="width: 16px;"></i>
+                </button>
+                
+                <h2 style="font-size: 2.5rem; margin-bottom: 0.5rem; font-weight: 800; letter-spacing: -1px;">Login</h2>
+                <p style="color: var(--text-muted); margin-bottom: 2.5rem;">Initialize session</p>
+                
+                <form id="loginForm">
+                    <div style="margin-bottom: 1.5rem;">
+                        <input type="email" class="input-glass" id="email" placeholder="Email Address" value="abelatnafu.g@gmail.com">
+                    </div>
+                    <div style="margin-bottom: 2.5rem;">
+                        <input type="password" class="input-glass" id="password" placeholder="Password" value="209211">
+                    </div>
+                    <button type="submit" class="btn-premium" style="width: 100%; justify-content: center; padding: 1.25rem; font-size: 1.1rem;">
+                        Authenticate <i data-lucide="arrow-right"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+    <script>
+        lucide.createIcons();
+
+        // Extreme 3D Hero Parallax
+        const hero3D = document.getElementById('hero3D');
+        window.addEventListener('mousemove', (e) => {
+            if(!hero3D) return;
+            const x = (window.innerWidth / 2 - e.pageX) / 30;
+            const y = (window.innerHeight / 2 - e.pageY) / 30;
+            hero3D.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+        });
+
+        // Auth Modal Logic with animations
+        const loginBtn = document.getElementById('loginBtn');
+        const authOverlay = document.getElementById('authOverlay');
+        const authCard = document.getElementById('authCard');
+        const closeAuth = document.getElementById('closeAuth');
+
+        const openModal = () => {
+            authOverlay.style.display = 'flex';
+            // Trigger reflow
+            void authOverlay.offsetWidth;
+            authOverlay.style.opacity = '1';
+            authCard.style.transform = 'translateY(0) scale(1)';
+        };
+
+        const closeModal = () => {
+            authOverlay.style.opacity = '0';
+            authCard.style.transform = 'translateY(40px) scale(0.95)';
+            setTimeout(() => { authOverlay.style.display = 'none'; }, 400);
+        };
+
+        loginBtn.addEventListener('click', openModal);
+        closeAuth.addEventListener('click', closeModal);
+        authOverlay.addEventListener('click', (e) => { if (e.target === authOverlay) closeModal(); });
+
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.innerHTML = '<i data-lucide="loader" class="spin"></i> Connecting...';
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                localStorage.setItem('userEmail', document.getElementById('email').value);
+                window.location.href = 'dashboard.html';
+            }, 800);
+        });
+    </script>
+    <style>
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</body>
+</html>
